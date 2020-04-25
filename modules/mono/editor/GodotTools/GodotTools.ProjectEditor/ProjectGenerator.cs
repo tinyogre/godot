@@ -30,21 +30,36 @@ namespace GodotTools.ProjectEditor
             debugGroup.AddProperty("DebugSymbols", "true");
             debugGroup.AddProperty("DebugType", "portable");
             debugGroup.AddProperty("Optimize", "false");
-            debugGroup.AddProperty("DefineConstants", "$(GodotDefineConstants);GODOT;DEBUG;TOOLS;");
+            debugGroup.AddProperty("DefineConstants", "$(GodotDefineConstants);GODOT;DEBUG;");
             debugGroup.AddProperty("ErrorReport", "prompt");
             debugGroup.AddProperty("WarningLevel", "4");
             debugGroup.AddProperty("ConsolePause", "false");
+
+            var toolsGroup = root.AddPropertyGroup();
+            toolsGroup.Condition = " '$(Configuration)|$(Platform)' == 'Tools|AnyCPU' ";
+            toolsGroup.AddProperty("DebugSymbols", "true");
+            toolsGroup.AddProperty("DebugType", "portable");
+            toolsGroup.AddProperty("Optimize", "false");
+            toolsGroup.AddProperty("DefineConstants", "$(GodotDefineConstants);GODOT;DEBUG;TOOLS;");
+            toolsGroup.AddProperty("ErrorReport", "prompt");
+            toolsGroup.AddProperty("WarningLevel", "4");
+            toolsGroup.AddProperty("ConsolePause", "false");
 
             var coreApiRef = root.AddItem("Reference", CoreApiProjectName);
             coreApiRef.AddMetadata("HintPath", Path.Combine("$(ProjectDir)", ".mono", "assemblies", "$(ApiConfiguration)", CoreApiProjectName + ".dll"));
             coreApiRef.AddMetadata("Private", "False");
 
             var editorApiRef = root.AddItem("Reference", EditorApiProjectName);
-            editorApiRef.Condition = " '$(Configuration)' == 'Debug' ";
+            editorApiRef.Condition = " '$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Tools' ";
             editorApiRef.AddMetadata("HintPath", Path.Combine("$(ProjectDir)", ".mono", "assemblies", "$(ApiConfiguration)", EditorApiProjectName + ".dll"));
             editorApiRef.AddMetadata("Private", "False");
 
             GenAssemblyInfoFile(root, dir, name);
+
+            var files = Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories);
+            foreach (var file in files) {
+                root.AddItem("Compile", file.RelativeToPath(dir).Replace("/", "\\"));
+            }
 
             foreach (var item in compileItems)
             {
@@ -81,7 +96,7 @@ namespace GodotTools.ProjectEditor
 
             File.WriteAllText(assemblyInfoFile, content);
 
-            root.AddItem("Compile", assemblyInfoFile.RelativeToPath(dir).Replace("/", "\\"));
+            //root.AddItem("Compile", assemblyInfoFile.RelativeToPath(dir).Replace("/", "\\"));
         }
 
         public static ProjectRootElement CreateLibraryProject(string name, string defaultConfig, out ProjectPropertyGroupElement mainGroup)
@@ -102,6 +117,16 @@ namespace GodotTools.ProjectEditor
             mainGroup.AddProperty("AssemblyName", name);
             mainGroup.AddProperty("TargetFrameworkVersion", "v4.7");
             mainGroup.AddProperty("GodotProjectGeneratorVersion", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+
+            var toolsGroup = root.AddPropertyGroup();
+            toolsGroup.Condition = " '$(Configuration)|$(Platform)' == 'Tools|AnyCPU' ";
+            toolsGroup.AddProperty("DebugSymbols", "true");
+            toolsGroup.AddProperty("DebugType", "portable");
+            toolsGroup.AddProperty("Optimize", "false");
+            toolsGroup.AddProperty("DefineConstants", "$(GodotDefineConstants);GODOT;DEBUG;TOOLS;");
+            toolsGroup.AddProperty("ErrorReport", "prompt");
+            toolsGroup.AddProperty("WarningLevel", "4");
+            toolsGroup.AddProperty("ConsolePause", "false");
 
             var exportDebugGroup = root.AddPropertyGroup();
             exportDebugGroup.Condition = " '$(Configuration)|$(Platform)' == 'ExportDebug|AnyCPU' ";
