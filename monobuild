@@ -1,0 +1,5 @@
+#!/bin/sh
+scons p=windows tools=yes module_mono_enabled=yes mono_glue=no vsproj=no -j8
+./bin/godot.windows.tools.64.mono.exe --generate-mono-glue modules/mono/glue
+scons p=windows tools=yes module_mono_enabled=yes mono_glue=yes vsproj=no -j8
+scons p=windows tools=no module_mono_enabled=yes mono_glue=yes vsproj=no -j8
