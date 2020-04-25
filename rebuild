@@ -1,0 +1,2 @@
+#!/bin/sh
+scons p=windows tools=yes module_mono_enabled=yes vsproj=yes -j8
